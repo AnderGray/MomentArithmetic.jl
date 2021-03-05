@@ -16,7 +16,7 @@
 #               -> Mean var : cheb
 #               -> Mean min: Markov, mean max: Markov
 #               -> Mean min & max: Cantelli
-#               -> Mean min & max var: Ferson (tbc)
+#               -> Mean min & max var: Ferson
 #   
 #           (look in downs)
 #   
@@ -77,9 +77,9 @@ end
 
 Moments(;mean = missing, var =missing, range =missing) = Moments(mean, var , range)
 
-left(x :: Interval) = x.lo;         left(x :: Real) = x;
-right(x :: Interval) = x.hi;        right(x :: Real) = x
+intervalM(mean = missing, var =missing, range =missing) =  Moments(mean, var , range)
 
+intervalM(;mean =missing, var =missing, range =missing) =  Moments(mean, var , range)
 
 function make_consistent(mean = missing,  var = missing, range = missing)
 
@@ -124,9 +124,6 @@ function make_consistent(mean = missing,  var = missing, range = missing)
     return mean, var, range
 
 end
-
-function 
-
 
 function Base.show(io::IO, z::Moments)
 

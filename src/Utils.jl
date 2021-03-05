@@ -26,3 +26,11 @@ function intersect(x:: Real, y :: AbstractInterval)
     return ∅
 end
 intersect(x :: AbstractInterval, y ::Real) = intersect(y,x)
+
+
+left(x :: Interval) = x.lo;         left(x :: Real) = x;
+right(x :: Interval) = x.hi;        right(x :: Real) = x
+
+hasIntMean(x :: Moments) = typeof(x.mean) <: Interval
+hasIntVar(x :: Moments) = typeof(x.var) <: Interval
+hasIntMoments(x :: Moments) = hasIntMean(x) || hasIntVar(x)
