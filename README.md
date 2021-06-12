@@ -15,6 +15,17 @@ This viewed as a form of *distribution-free risk analysis*.
 
 [REC21 Presentation](http://ww2new.unime.it/REC2021/index.php?uri=presentations)
 
+
+## Installation
+
+Not yet a registered package, however may be installed through the Julia package manager:
+
+```Julia
+julia> ]
+pkg> add https://github.com/AnderGray/MomentArithmetic.jl
+```
+
+
 ## Features
 
 - 9 univariate transformations: scalar multiplication, scalar translation, exp, log, ln, 1/x, x^2, sqrt and |x|
