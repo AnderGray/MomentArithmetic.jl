@@ -5,51 +5,25 @@
 #
 #   Definition of Moment variable class
 #
-#           University of Liverpool, 
+#           University of Liverpool,
 #           Institute for Risk and Unertainty
 #
-#                                           Author: Ander Gray, Scott Ferson
+#                                           Authors: Ander Gray, Scott Ferson
 #                                           Email:  ander.gray@liverpool.ac.uk
 #
-#       To Do:
 #
-#               -> Mean var : cheb
-#               -> Mean min: Markov, mean max: Markov
-#               -> Mean min & max: Cantelli
-#               -> Mean min & max var: Ferson
-#   
 #           (look in downs)
-#   
+#
 #               -> Doesn't exits: bound and a variance
 #
 #               -> From moments, we can't get the range... unless we know something about the shapes
 #               -> However possible option to truncate pba style. Give option. (Consitent throughout)
 #
-#               -> Univariate from Rowe  (found)
-#
 #               -> Arithmetic when dependency is known (?) Perf, op, correlation. Interval correlation coeff.
 #               -> Dependeny. Calulate the covarience between Z and X. when z = x + y. Langewisch paper has some
 #
-#               
-#
-#               -> Units
 #
 ######
-
-import Base.+
-import Base.-
-import Base.*
-import Base./
-import Base.^
-
-import Base.issubset, Base.intersect
-
-using IntervalArithmetic, ProbabilityBoundsAnalysis
-
-abstract type AbstractMoment end
-
-include("Arithmetic.jl")
-include("Utils.jl")
 
 
 #global correlationDict = Dict()
@@ -60,7 +34,7 @@ include("Utils.jl")
 mutable struct Moments <: AbstractMoment
 
     mean ::  Union{Real, Interval}                   # Can also make it a pbox as an input
-    var  ::  Union{Real, Interval}                   
+    var  ::  Union{Real, Interval}
     range :: Union{Missing, Interval}
 
     #CorreltedVars :: Union{Missing, Array{UInt64,1}} # For defining which variables this one is correlted too, for dependency tracking
@@ -77,9 +51,10 @@ end
 
 Moments(;mean = missing, var =missing, range =missing) = Moments(mean, var , range)
 
-intervalM(mean = missing, var =missing, range =missing) =  Moments(mean, var , range)
 
-intervalM(;mean =missing, var =missing, range =missing) =  Moments(mean, var , range)
+intervalM =  Moments
+
+
 
 function make_consistent(mean = missing,  var = missing, range = missing)
 
@@ -90,7 +65,7 @@ function make_consistent(mean = missing,  var = missing, range = missing)
 
     # mean constraint
     if (mean ∩ range == ∅); throw(ArgumentError("Provided information not valid. Mean ∩ Range = ∅.\n       $mean ∩ $range = ∅")); end
-    if !( mean ⊆ range); 
+    if !( mean ⊆ range);
         ml = max(left(mean), left(range));
         mh = min(right(mean), right(range));
         mean = interval(ml,mh);
@@ -99,7 +74,7 @@ function make_consistent(mean = missing,  var = missing, range = missing)
     # Var constraint
     maxVar = interval(0,Inf)
     if isfinite(range.hi) && isfinite(range.lo)
-        maxRange = range.hi; minRange = range.lo; 
+        maxRange = range.hi; minRange = range.lo;
         meanMax = right(mean); meanMin = left(mean);
 
         v1 = (maxRange-minRange)*(maxRange-meanMin)-(maxRange-meanMin)*(maxRange-meanMin);
@@ -107,12 +82,12 @@ function make_consistent(mean = missing,  var = missing, range = missing)
         v3 = 0; mid = (range.hi + range.lo)/2;
 
         if (mid ∈ mean); v3 =  (maxRange-minRange)*(maxRange-mid)-(maxRange-mid)*(maxRange-mid); end
-        
+
         #println("v1: $v1");println("v2: $v2");println("v3: $v3")
 
-        vh = max(v1, v2, v3); vl = 0;    
+        vh = max(v1, v2, v3); vl = 0;
         maxVar = interval(vl,vh);
-    end 
+    end
 
     if (var ∩ maxVar == ∅); throw(ArgumentError("Provided information not valid. Variance ∩ VarBounds = ∅.\n       $var ∩ $maxVar = ∅")); end
     if !(var ⊆ maxVar)
@@ -125,6 +100,19 @@ function make_consistent(mean = missing,  var = missing, range = missing)
 
 end
 
+
+function makepbox(x :: Moments)
+
+    if isvacuous(x.range); return meanVar(x.mean, x.var); end
+
+    return MinMaxMeanVar(x.range.lo, x.range.hi, x.mean, x.var)
+
+end
+
+
+plot(x::Moments) = plot(makepbox(x))
+plot(x::Moments, c...) = plot(makepbox(x), c...)
+
 function Base.show(io::IO, z::Moments)
 
     if (typeof(z.mean) <: AbstractInterval); statement1 = "mean = [$(z.mean.lo),$(z.mean.hi)]"; else statement1= "mean  = $(z.mean)";end
@@ -134,7 +122,3 @@ function Base.show(io::IO, z::Moments)
     print(io, "moment: \t  ~ ( $statement1, $statement2 $statement3 )");
 
 end
-
-
-
-
