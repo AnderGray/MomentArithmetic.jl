@@ -5,37 +5,13 @@
 #
 #   Definition of Moment Arithmetic
 #
-#           University of Liverpool, 
+#           University of Liverpool,
 #           Institute for Risk and Unertainty
 #
-#                                           Author: Ander Gray, Scott Ferson
+#                                           Authors: Ander Gray, Scott Ferson
 #                                           Email:  ander.gray@liverpool.ac.uk
 ######
 
-
-import Base: exp, sqrt, ^, log, ln, +, -, *, /
-
-global Nsub = 20
-
-function env(x, y)
-    MIN = min(left(x), left(y));
-    MAX = max(right(x), right(y))
-    return interval(MIN, MAX);
-end
-
-left(x :: Moments) = x.range.lo
-right(x :: Moments) = x.range.hi
-
-
-function Split(X :: Interval, splits :: Integer = n)
-    ###
-    #   Splits an interval into n subintervals. Julia's range function is very accurate.
-    ###
-
-    xRange = range(X.lo, stop=X.hi, length = splits+1)
-    return interval.(xRange[1:end-1],xRange[2:end]);
-
-end
 
 ##
 #   Rowe mean
@@ -44,7 +20,7 @@ end
 function roweFormula(EX, VX, LX , GX, t :: Function)
 
     P = 1 / (1 + (EX - LX)^2/ VX)
-    Q = 1 / (1 + (GX .- EX)^2/ VX)
+    Q = 1 / (1 + (GX - EX)^2/ VX)
 
     MIN = P * t(LX) + (1 - P) * t(EX + VX/(EX - LX))
     MAX = Q * t(GX) + (1 - Q) * t(EX + VX/(EX - GX))
@@ -54,15 +30,15 @@ function roweFormula(EX, VX, LX , GX, t :: Function)
 end
 
 
-function rowe(x :: Moments, t :: Function; Nsub = Nsub)
+function rowe(x :: AbstractMoment, t :: Function; Nsub = Nsub[1])
 
     if !hasIntMoments(x); return roweNoSub(x,t); end
 
     EXs = x.mean; VXs = x.var;
-    LX = left(x); GX = right(x); 
+    LX = left(x); GX = right(x);
 
-    if typeof(EXs) <: Interval;  EXs = Split(EXs, Nsub); end    # Sub-intervalise
-    if typeof(VXs) <: Interval;  VXs = Split(VXs, Nsub); end    
+    if typeof(EXs) <: Interval;  EXs = split(EXs, Nsub); end    # Sub-intervalise
+    if typeof(VXs) <: Interval;  VXs = split(VXs, Nsub); end
 
     outs = [roweFormula(EX, VX, LX, GX, t) for EX in EXs, VX in VXs]
 
@@ -71,7 +47,7 @@ function rowe(x :: Moments, t :: Function; Nsub = Nsub)
 end
 
 # No sub-intervalisation
-function roweNoSub(x :: Moments, t :: Function)
+function roweNoSub(x :: AbstractMoment, t :: Function)
 
     EX = x.mean; VX = x.var;
     LX = left(x); GX = right(x);
@@ -93,44 +69,46 @@ function rowevarFormula(EX, VX, LX , GX, t :: Function, invT :: Function)
 
     MIN = ((t(Lv) - t(LX))/(Lv - LX))^2 * (VX + (Lv - EX)^2)
     MAX = ((t(Gv) - t(GX))/(Gv - GX))^2 * (VX + (Gv - EX)^2)
-    
+
     return env(MIN, MAX)
 
 end
 
-function rowevar(x :: Moments, t :: Function, invT :: Function; Nsub = Nsub)
+function rowevar(x :: AbstractMoment, t :: Function, invT :: Function; Nsub = Nsub[1])
 
     if !hasIntMoments(x); return rowevarNoSub(x,t, invT); end
 
     EXs = x.mean; VXs = x.var;
-    LX = left(x); GX = right(x); 
+    LX = left(x); GX = right(x);
 
-    if typeof(EXs) <: Interval;  EXs = Split(EXs, Nsub); end    # Sub-intervalise
-    if typeof(VXs) <: Interval;  VXs = Split(VXs, Nsub); end   
+    if typeof(EXs) <: Interval;  EXs = split(EXs, Nsub); end    # Sub-intervalise
+    if typeof(VXs) <: Interval;  VXs = split(VXs, Nsub); end
 
     outs = [rowevarFormula(EX, VX, LX, GX, t, invT) for EX in EXs, VX in VXs]
-    
-    return hull(outs[:])
+
+    out = hull(outs[:])
+    if isnan(out); out = interval(0, Inf); end
+    return out
 
 end
 
 
 # No sub-intervalisation
-function rowevarNoSub(x :: Moments, t :: Function, invT :: Function)
-    
+function rowevarNoSub(x :: AbstractMoment, t :: Function, invT :: Function)
+
     EX = x.mean; VX = x.var;
-    LX = left(x); GX = right(x); 
-    
+    LX = left(x); GX = right(x);
+
     return rowevarFormula(EX, VX, LX, GX, t, invT)
 
 end
 
-### 
+###
 #   Univariate transformations
 ###
--(x :: Moments) = Moments(-x.mean, x.var, -x.range)
+-(x :: AbstractMoment) = Moments(-x.mean, x.var, -x.range)
 
-function reciprocal(x :: Moments)
+function reciprocal(x :: AbstractMoment)
     f(x) = 1/x
     invF(x) = 1/x
 
@@ -144,7 +122,7 @@ end
 
 reciprocal(x :: Real) = 1/x
 
-function exp(x :: Moments)
+function exp(x :: AbstractMoment)
 
     MEAN = rowe(x, exp)
     VAR = rowevar(x, exp, log)
@@ -154,36 +132,36 @@ function exp(x :: Moments)
 
 end
 
-#^(x :: Moments) = throw(ArgumentError("rowe exponentiate must be implemented")) 
+#^(x :: AbstractMoment) = throw(ArgumentError("rowe exponentiate must be implemented"))
 
-function ^(x :: Moments, a :: Real)
+function ^(x :: AbstractMoment, a :: Real)
 
     if !(a == 2); throw(ArgumentError("Only rowe squared works so far")); end
 
     f(x) = x^2
     invF(x) = sqrt(x)
 
-    MEAN = rowe(x, f) 
+    MEAN = rowe(x, f)
     VAR = rowevar(x, f, invF)
     RANGE = f(x.range)
-    
+
     return Moments(MEAN, VAR, RANGE)
 end
 
-function sqrt(x :: Moments)
+function sqrt(x :: AbstractMoment)
 
     f(x) = sqrt(x)
     invF(x) = x^2
 
-    MEAN = rowe(x, f) 
+    MEAN = rowe(x, f)
     VAR = rowevar(x, f, invF)
     RANGE = f(x.range)
-    
+
     return Moments(MEAN, VAR, RANGE)
 end
 
-function ln(x :: Moments)
-    
+function ln(x :: AbstractMoment)
+
     f(x) = log(x)
     invF(x) = exp(x)
 
@@ -194,32 +172,51 @@ function ln(x :: Moments)
     return Moments(MEAN, VAR, RANGE)
 end
 
-function log(x = missing :: Moments, base = ℯ :: Real)
+function log(x = missing :: AbstractMoment, base = ℯ :: Real)
     if base == ℯ; return ln(x); end
 
     f(x) = log(base, x)
     invF(x) = base^x
 
-    MEAN = rowe(x, f) 
+    MEAN = rowe(x, f)
     VAR = rowevar(x, f, invF)
     RANGE = f(x.range)
-    
+
     return Moments(MEAN, VAR, RANGE)
 end
 
+function abs(x :: AbstractMoment)
+    if x.range > 0;
+        EY = x.mean;
+    elseif x.range < 0;
+        EY = -x.mean;
+    else
+        sqvar = sqrt(x.var)
+        EY1 = abs(x.mean)
+        EY2 = EY1 + sqvar * (pi - atan(EY1/sqvar));
+        EY = env(EY1, EY2)
+    end
+
+    Yvar = max(0, x.mean^2 + x.var - EY);
+    Yrange = abs(x.range)
+
+    return Moments(EY, Yvar, Yrange)
+
+
+end
 
 ###
-#   Scalar arithmetic 
+#   Scalar arithmetic
 ###
-+(x :: Moments, y :: Real) = Moments(x.mean + y, x.var, x.range + y)
-+(x :: Real, y:: Moments) = y + x;
--(x :: Moments, y :: Real) = x + (-y);
--(x :: Real, y :: Moments) = x + (-y);
++(x :: AbstractMoment, y :: Real) = Moments(x.mean + y, x.var, x.range + y)
++(x :: Real, y:: AbstractMoment) = y + x;
+-(x :: AbstractMoment, y :: Real) = x + (-y);
+-(x :: Real, y :: AbstractMoment) = x + (-y);
 
-*(x :: Moments, y :: Real) = Moments(x.mean * y, x.var * y^2, x.range * y)
-*(x :: Real, y:: Moments) = y * x;
-/(x :: Moments, y :: Real) = x * (1/y);
-/(x :: Real, y :: Moments) = x * reciprocal(y);
+*(x :: AbstractMoment, y :: Real) = Moments(x.mean * y, x.var * y^2, x.range * y)
+*(x :: Real, y:: AbstractMoment) = y * x;
+/(x :: AbstractMoment, y :: Real) = x * (1/y);
+/(x :: Real, y :: AbstractMoment) = x * reciprocal(y);
 
 
 ###
@@ -229,7 +226,7 @@ end
 ###
 # Independent
 ###
-function sumIndep(x :: Moments, y :: Moments)
+function sumIndep(x :: AbstractMoment, y :: AbstractMoment)
 
     zMean  = x.mean  + y.mean;
     zVar   = x.var   + y.var;
@@ -239,7 +236,7 @@ function sumIndep(x :: Moments, y :: Moments)
     return Moments(zMean, zVar, zRange);
 end
 
-function subIndep(x :: Moments, y :: Moments)
+function subIndep(x :: AbstractMoment, y :: AbstractMoment)
 
     zMean  = x.mean  - y.mean;
     zVar   = x.var   + y.var;
@@ -249,7 +246,7 @@ function subIndep(x :: Moments, y :: Moments)
     return Moments(zMean, zVar, zRange);
 end
 
-function multIndep(x :: Moments, y :: Moments)
+function multIndep(x :: AbstractMoment, y :: AbstractMoment)
 
     zMean  = x.mean  * y.mean;
     zVar   = (x.mean^2 * y.var) + (y.mean^2 * x.var) + (x.var * y.var);     # No subint required
@@ -262,12 +259,12 @@ end
 
 
 
-function divIndep(x :: Moments, y :: Moments)
+function divIndep(x :: AbstractMoment, y :: AbstractMoment)
     multIndep(x,1/y);
 end
 
-function minIndep(x :: Moments, y :: Moments)
-    
+function minIndep(x :: AbstractMoment, y :: AbstractMoment)
+
     if x.range.hi < y.range.lo
         zMean = x.mean;
         zVar = x.var;
@@ -285,8 +282,8 @@ function minIndep(x :: Moments, y :: Moments)
     return minFrechet(x, y)
 end
 
-function maxIndep(x :: Moments, y :: Moments)
-    
+function maxIndep(x :: AbstractMoment, y :: AbstractMoment)
+
     if x.range.hi < y.range.lo
         zMean = y.mean;
         zVar = y.var;
@@ -304,29 +301,29 @@ function maxIndep(x :: Moments, y :: Moments)
     return maxFrechet(x, y)
 end
 
-+(x :: Moments, y :: Moments) = sumIndep(x,y);
--(x :: Moments, y :: Moments) = subIndep(x,y);
-*(x :: Moments, y :: Moments) = multIndep(x,y);
-/(x :: Moments, y :: Moments) = divIndep(x,y);
++(x :: AbstractMoment, y :: AbstractMoment) = sumIndep(x,y);
+-(x :: AbstractMoment, y :: AbstractMoment) = subIndep(x,y);
+*(x :: AbstractMoment, y :: AbstractMoment) = multIndep(x,y);
+/(x :: AbstractMoment, y :: AbstractMoment) = divIndep(x,y);
 
 ##
 # With Intervals (Moments with just ranges)
 ##
-+(x :: Moments, y :: Interval) = sumIndep(x, Moment(missing, missing, y));
--(x :: Moments, y :: Interval) = subIndep(x, Moment(missing, missing, y));
-*(x :: Moments, y :: Interval) = multIndep(x, Moment(missing, missing, y));
-/(x :: Moments, y :: Interval) = divIndep(x,  Moment(missing, missing, y));
++(x :: AbstractMoment, y :: Interval) = sumIndep(x, Moments(missing, missing, y));
+-(x :: AbstractMoment, y :: Interval) = subIndep(x, Moments(missing, missing, y));
+*(x :: AbstractMoment, y :: Interval) = multIndep(x, Moments(missing, missing, y));
+/(x :: AbstractMoment, y :: Interval) = divIndep(x,  Moments(missing, missing, y));
 
-+(x :: Interval, y :: Moments) = sumIndep(Moment(missing, missing, x), y);
--(x :: Interval, y :: Moments) = subIndep(Moment(missing, missing, x), y);
-*(x :: Interval, y :: Moments) = multIndep(Moment(missing, missing, x),y);
-/(x :: Interval, y :: Moments) = divIndep(Moment(missing, missing, x), y);
++(x :: Interval, y :: AbstractMoment) = sumIndep(Moments(missing, missing, x), y);
+-(x :: Interval, y :: AbstractMoment) = subIndep(Moments(missing, missing, x), y);
+*(x :: Interval, y :: AbstractMoment) = multIndep(Moments(missing, missing, x),y);
+/(x :: Interval, y :: AbstractMoment) = divIndep(Moments(missing, missing, x), y);
 
 
 ###
 #   Dependence unknown
 ###
-function sumFrechet(x :: Moments, y :: Moments)
+function sumFrechet(x :: AbstractMoment, y :: AbstractMoment)
 
     zMean = x.mean + y.mean
 
@@ -342,7 +339,7 @@ function sumFrechet(x :: Moments, y :: Moments)
     return Moments(zMean, zVar, zRange);
 end
 
-function subFrechet(x :: Moments, y :: Moments)
+function subFrechet(x :: AbstractMoment, y :: AbstractMoment)
 
     zMean = x.mean - y.mean
 
@@ -352,29 +349,38 @@ function subFrechet(x :: Moments, y :: Moments)
     zVarLb = max(zVarLb, 0)
 
     zVar = env(zVarLb, zVarUb);
-    
+
     zRange = x.range - y.range;
 
     return Moments(zMean, zVar, zRange);
 end
 
-function multFrechet(x :: Moments, y :: Moments)
+# Requires alot of subintervaling for Gvar to have an effect
+function multFrechet(x :: AbstractMoment, y :: AbstractMoment; Nsub = Nsub[1])
 
-    zMeanLb = x.mean * y.mean - sqrt(x.var * y.var);
-    zMeanUb = x.mean * y.mean + sqrt(x.var * y.var);
+    EX = x.mean; EY = y.mean;
+    VX = x.var; VY = y.var;
+
+    zMeanLb = EX * EY - sqrt(VX * VY);
+    zMeanUb = EX * EY + sqrt(VX * VY);
     zMean = env(zMeanLb, zMeanUb);
-    
-    zVar = Gvar(x, y)
-    
+
+    if typeof(EX) <: Interval && !isvacuous(EX);  EX = split(EX, Nsub); end    # Sub-intervalise
+    if typeof(EY) <: Interval && !isvacuous(EY);  EY = split(EY, Nsub); end
+
+    zVar = [Gvar(Moments(ex ,VX ,x.range), Moments(ey, VY, y.range)) for ex in EX, ey in EY]
+
+    zVar = hull(zVar[:])
+
     zRange = x.range * y.range;
 
     return Moments(zMean, zVar, zRange);
 end
 
-divFrechet(x :: Moments, y :: Moments) = multFrechet(x, 1/y)  #Not best possible
+divFrechet(x :: AbstractMoment, y :: AbstractMoment) = multFrechet(x, 1/y)  #Not best possible
 
 
-function minFrechet(x :: Moments, y :: Moments)
+function minFrechet(x :: AbstractMoment, y :: AbstractMoment)
 
     zRange = min(x.range, y.range)
     zVar = env(0, max(x.var, y.var))
@@ -389,7 +395,7 @@ function minFrechet(x :: Moments, y :: Moments)
 
 end
 
-function maxFrechet(x :: Moments, y :: Moments)
+function maxFrechet(x :: AbstractMoment, y :: AbstractMoment)
 
     zRange = max(x.range, y.range)
     zVar = env(0, max(x.var, y.var))
@@ -406,7 +412,7 @@ end
 
 
 ###
-#   known Dependence, or interval Dependence   
+#   known Dependence, or interval Dependence
 ###
 
 
@@ -426,7 +432,7 @@ function Bmax(EX, LX, GX, EY, LY, GY)
 
     B1 = env(max(EX, EY), max(GX, GY))
     B2 = EX + EY - env(min(EX, EY), min(LX, LY))
-    
+
     return intersect(B1,B2)
 end
 
@@ -436,12 +442,12 @@ end
 #   Goodman formula for variance under unknown dependence
 ###
 
-#   Looks like a complidated repeat variables problem, but onlt EX and EY need sub-ints
-function Gvar(x :: Moments, y ::Moments)
+#   Looks like a complidated repeat variables problem, but only EX and EY need sub-ints
+function Gvar(x :: AbstractMoment, y :: AbstractMoment)
 
-    EX = x.mean; VX = y.mean
-    EY = y.mean; VY = y.mean
-    
+    EX = x.mean; VX = y.var
+    EY = y.mean; VY = y.var
+
     EXY = multFrechetMean(x, y)
     EX2Y = multFrechetMean(x^2, y)
     EXY2 = multFrechetMean(x, y^2)
@@ -457,11 +463,36 @@ function Gvar(x :: Moments, y ::Moments)
 
     VXY = EX^2*VX + EY^2*VY + 2*EX*EY*E11 + 2*EX*E12 + 2*EY*E21 + E22 - E11^2
 
-    return max(VXY,0)
+    #VXY2 = EX^2*VX + EY^2*VY + 2*EX*EX2Y - 2*EY*EX2Y + 4*EX*EY^3 - 6*EX^2*EY^2 + 4*EX^3*EY - EXY^2 + 8*EX*EY*EXY - 4*EX^2*EXY - 4*EY^2*EXY -2*EX*EY*EX2 + EY^2*EX2 - 2*EX*EY*EY2 + EX^2*EY2 + 2*EY*EXY2 - 2*EX*EXY2 + EX2Y2
+
+    return max(VXY, 0)
 
 end
 
-function multFrechetMean(x :: Moments, y :: Moments)
+#=
+
+    E11 = EXY - EX*EY
+    E12 = EX2Y - EX2*EY + 2*EX^2*EY - 2*EX*EXY
+    E21 = EXY2 - EX*EY2 + 2*EX*EY^2 - 2*EY*EXY
+    E22 = -3*EX^2*EY^2 + EX2*EY^2 + EX^2*EY2 + 4*EX*EY*EXY - 2*EY*EX2Y - 2*EX*EXY2 + EX2Y2
+
+    VXY = EX^2*VX + EY^2*VY + 2*EX*EY*E11 + 2*EX*E12 + 2*EY*E21 + E22 - E11^2
+
+    A = EX; B = EY;
+    C = EXY; D = EX2;
+    E = EY2; F = EX2Y;
+    G = EXY2; H = EX2Y2
+
+    2 * A * B * (C - A*B) + 2 * A * (F -D*B +2 * A^2 * B - 2 * A * C) + 2 * B * (G - A * E + 2 * A * B^2 - 2 * B * C) + (-3 * A^2 * B^2 + D * B^2 + A^2 * E + 4*A*B*C -2*B*F - 2*A*G + H) - (C - A*B)^2
+
+    simplify gives:
+
+    2AF-2BF+4AB^3-6A^2B^2+4A^3B-C^2+8ABC-4A^2C-4B^2C-2ABD+B^2D-2ABE+A^2E+2BG-2AG+H
+
+    2*EX*EX2Y - 2*EY*EX2Y + 4*EX*EY^3 - 6*EX^2*EY^2 + 4*EX^3*EY - EXY^2 + 8*EX*EY*EXY - 4*EX^2*EXY - 4*EY^2*EXY -2*EX*EY*EX2 + EY^2*EX2 - 2*EX*EY*EY2 + EX^2*EY2 + 2*EY*EXY2 - 2*EX*EXY2 + EX2Y2
+=#
+
+function multFrechetMean(x :: AbstractMoment, y :: AbstractMoment)
     zMeanLb = x.mean * y.mean - sqrt(x.var * y.var);
     zMeanUb = x.mean * y.mean + sqrt(x.var * y.var);
     return env(zMeanLb, zMeanUb);
@@ -492,8 +523,8 @@ function minFrechetSub(x :: Moments, y ::Moments)
         return Moments(zMean, zVar, zRange)
     end
 
-    if typeof(EX) <: Interval;  EX = Split(EX, Nsub); end    
-    if typeof(EY) <: Interval;  EY = Split(EY, Nsub); end   
+    if typeof(EX) <: Interval;  EX = Split(EX, Nsub); end
+    if typeof(EY) <: Interval;  EY = Split(EY, Nsub); end
 
     zMeans = [Bmin(EX, LX, GX, EY, LY, GY) for EX in EX, EY in EY];
 
