@@ -34,4 +34,3 @@ pkg> add https://github.com/AnderGray/MomentArithmetic.jl
 - Moments consitancy checking
 - Bounding p-box from Moments
 
-## Moment Propagation tables
