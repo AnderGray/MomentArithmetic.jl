@@ -1,6 +1,6 @@
 # MomentArithmetic.jl
 
-Rigorous propagation of partial inforation about moments and dependencies in Julia.
+Rigorous propagation of partial inforation about [moments](https://en.wikipedia.org/wiki/Moment_(mathematics)) and [dependencies](https://en.wikipedia.org/wiki/Copula_(probability_theory)) in Julia.
 
 Generalisation of First Order Error Propagation with:
 
@@ -32,7 +32,7 @@ pkg> add https://github.com/AnderGray/MomentArithmetic.jl
 - 7 binary operations: +, -, \*, /, ^, min, max
 - Independence and no dependence assumptions (Fréchet)
 - Moments consitancy checking
-- Bounding p-box from Moments
+- Bounding [p-box](https://en.wikipedia.org/wiki/Probability_box) from Moments
 
 ## Usage
 
