@@ -311,16 +311,19 @@ max(x :: AbstractMoment, y :: AbstractMoment) = maxFrechet(x,y);
 ##
 # With Intervals (Moments with just ranges)
 ##
-+(x :: AbstractMoment, y :: Interval) = sumIndep(x, Moments(missing, missing, y));
--(x :: AbstractMoment, y :: Interval) = subIndep(x, Moments(missing, missing, y));
-*(x :: AbstractMoment, y :: Interval) = multIndep(x, Moments(missing, missing, y));
-/(x :: AbstractMoment, y :: Interval) = divIndep(x,  Moments(missing, missing, y));
++(x :: AbstractMoment, y :: Interval) = sumFrechet(x, Moments(missing, missing, y));
+-(x :: AbstractMoment, y :: Interval) = subFrechet(x, Moments(missing, missing, y));
+*(x :: AbstractMoment, y :: Interval) = multFrechet(x, Moments(missing, missing, y));
+/(x :: AbstractMoment, y :: Interval) = divFrechet(x,  Moments(missing, missing, y));
+min(x :: AbstractMoment, y :: Interval) = minFrechet(x,Moments(missing, missing, y));
+max(x :: AbstractMoment, y :: Interval) = maxFrechet(x,Moments(missing, missing, y));
 
-+(x :: Interval, y :: AbstractMoment) = sumIndep(Moments(missing, missing, x), y);
--(x :: Interval, y :: AbstractMoment) = subIndep(Moments(missing, missing, x), y);
-*(x :: Interval, y :: AbstractMoment) = multIndep(Moments(missing, missing, x),y);
-/(x :: Interval, y :: AbstractMoment) = divIndep(Moments(missing, missing, x), y);
-
++(x :: Interval, y :: AbstractMoment) = sumFrechet(Moments(missing, missing, x), y);
+-(x :: Interval, y :: AbstractMoment) = subFrechet(Moments(missing, missing, x), y);
+*(x :: Interval, y :: AbstractMoment) = multFrechet(Moments(missing, missing, x),y);
+/(x :: Interval, y :: AbstractMoment) = divFrechet(Moments(missing, missing, x), y);
+min(x :: Interval, y :: AbstractMoment) = minFrechet(Moments(missing, missing, x),y);
+max(x :: Interval, y :: AbstractMoment) = maxFrechet(Moments(missing, missing, x),y);
 
 ###
 #   Dependence unknown
