@@ -10,4 +10,4 @@ ProbabilityBoundsAnalysis = "cd73f0b2-6f06-11ea-242f-83a09de6a7cf"
 [compat]
 ProbabilityBoundsAnalysis = "0.2"
 IntervalArithmetic = "0.18"
-
+julia = "1"
