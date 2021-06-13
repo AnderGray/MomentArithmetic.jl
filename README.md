@@ -149,7 +149,7 @@ julia> plot(p)       # may also do plot(A)
 
 <img src="https://imgur.com/eqsdj7w.png" data-canonical-src="https://imgur.com/eqsdj7w.png" width="1500" />
 
-
+The above p-box bounds all distribution functions with mean 3, variance 1 and range [1, 5]
 
 ## Funding
 
