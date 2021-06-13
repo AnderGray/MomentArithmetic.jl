@@ -134,5 +134,17 @@ moment: 	  ~ ( mean = [2.3,3.0], var = [0.0,2.8000000000000007] , range = [2.3,7
 julia> maxIndep(A,B)
 moment: 	  ~ ( mean = [3.0,7.0], var = [0.0,5.5225] , range = [2.3,7.0] )
 
+```
+
+### Bounding p-box 
+
+```Julia
+julia> A = Moments(3, 1, interval(1,5))
+moment: 	  ~ ( mean  = 3, var = 1 , range = [1.0,5.0] )
+
+julia> p = makepbox(A);
+julia> plot(p)       # may also do plot(A)
 
 ```
+
+<img src="https://imgur.com/eqsdj7w.png" data-canonical-src="https://imgur.com/eqsdj7w.png" width="1500" />
