@@ -7,7 +7,7 @@ Generalisation of First Order Error Propagation with:
 - Independence between variables need not be assumed (but can be)
 - Moments may be partially known (intervals)
 - Input distribution assumptions no longer necessary
-- Distributrional information can be obtained from moment and range information in non-linear models
+- Distributional information can be obtained from moment and range information in non-linear models
 
 May be viewed as a form of *distribution-free risk analysis*.
 
