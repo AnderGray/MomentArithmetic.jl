@@ -35,7 +35,7 @@ pkg> add https://github.com/AnderGray/MomentArithmetic.jl
 
 ## Usage
 
-### Consistancy Checking
+### Consistency Checking
 ```Julia
 # Theoretical moment bounds from range
 julia> A = Moments(mean = missing, var = missing, range = interval(2.3, 7))
