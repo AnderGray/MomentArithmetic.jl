@@ -1,6 +1,6 @@
 # MomentArithmetic.jl
 
-Rigorous propagation of partial inforation about [moments](https://en.wikipedia.org/wiki/Moment_(mathematics)) and [dependencies](https://en.wikipedia.org/wiki/Copula_(probability_theory)) in Julia.
+Rigorous moment propagation with partial information about [moments](https://en.wikipedia.org/wiki/Moment_(mathematics)) and [dependencies](https://en.wikipedia.org/wiki/Copula_(probability_theory)) in Julia.
 
 Generalisation of First Order Error Propagation with:
 
