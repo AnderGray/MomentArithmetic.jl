@@ -59,6 +59,31 @@ julia> E = Moments(mean = 3, var = interval(15,18), range = interval(2.3, 7))
 ERROR: ArgumentError: Provided information not valid. Variance ∩ VarBounds = ∅.
        [15, 18] ∩ [0, 2.80001] = ∅
 ```
+### Arithmetic unary
+```Julia
+julia> 1/A
+moment: 	  ~ ( mean = [0.14285714285714285,0.4347826086956522], var = [0.0,0.021305119401257674] , range = [0.14285714285714285,0.4347826086956522] )
+
+julia> exp(A)
+moment: 	  ~ ( mean = [9.974182454814718,1096.6331584284587], var = [0.0,295206.9325160221] , range = [9.974182454814718,1096.6331584284587] 
+
+# Natural, also ln
+julia> log(A)
+moment: 	  ~ ( mean = [0.8329091229351039,1.9459101490553135], var = [0.0,0.3096928210361599] , range = [0.8329091229351039,1.9459101490553135] )
+
+julia> log(A,10)
+moment: 	  ~ ( mean = [0.3617278360175928,0.845098040014257], var = [0.0,0.058411688527944206] , range = [0.3617278360175928,0.845098040014257] )
+
+julia> A^2
+moment: 	  ~ ( mean = [5.289999999999999,49.0], var = [0.0,477.641025] , range = [5.289999999999999,49.0] )
+
+julia> sqrt(A)
+moment: 	  ~ ( mean = [1.51657508881031,2.6457513110645907], var = [0.0,0.3187597352261121] , range = [1.51657508881031,2.6457513110645907] )
+
+julia> abs(A)
+moment: 	  ~ ( mean = [2.3,7.0], var = [0.0,5.5225] , range = [2.3,7.0] )
+```
+
 
 ### Arithmetic bivariate
 ```Julia
@@ -82,7 +107,6 @@ julia> max(A,B)
 moment: 	  ~ ( mean = [3.0,7.0], var = [0.0,5.5225] , range = [2.3,7.0] )
 
 # Independence also possible
-
 julia> sumIndep(A,B)
 moment: 	  ~ ( mean = [5.3,10.0], var = [0.0,8.322500000000002] , range = [4.6,14.0] )
 
