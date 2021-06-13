@@ -61,6 +61,15 @@ ERROR: ArgumentError: Provided information not valid. Variance âˆ© VarBounds = â
 ```
 ### Arithmetic unary
 ```Julia
+
+# Translation
+julia> A + 2
+moment: 	  ~ ( mean = [4.3,9.0], var = [0.0,5.5225] , range = [4.3,9.0] )
+
+# Scaling
+julia> A * 2
+moment: 	  ~ ( mean = [4.6,14.0], var = [0.0,22.09] , range = [4.6,14.0] )
+
 julia> 1/A
 moment: 	  ~ ( mean = [0.14285714285714285,0.4347826086956522], var = [0.0,0.021305119401257674] , range = [0.14285714285714285,0.4347826086956522] )
 
