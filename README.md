@@ -11,10 +11,17 @@ Generalisation of First Order Error Propagation with:
 
 May be viewed as a form of *distribution-free risk analysis*.
 
-[REC21 Paper](https://elements.liverpool.ac.uk/repository.html?com=get-file&publication-id=495120&rfid=https%3A%2F%2Flivrepository.liverpool.ac.uk%2Frt4eprints%2Ffile%2F393269%2FREC2021_37_Gray.pdf)
+[REC21 Paper](https://www.researchgate.net/publication/352225779_Distribution-free_uncertainty_propagation)
 
 [REC21 Presentation](http://ww2new.unime.it/REC2021/index.php?uri=presentations)
 
+## Features
+
+- 9 univariate transformations: scalar multiplication, scalar translation, exp, log, ln, 1/x, x^2, sqrt and |x|
+- 7 binary operations: +, -, \*, /, ^, min, max
+- Independence and no dependence assumptions (Fréchet)
+- Moments consitancy checking
+- Bounding [p-box](https://en.wikipedia.org/wiki/Probability_box) from Moments
 
 ## Installation
 
@@ -26,14 +33,73 @@ pkg> add https://github.com/AnderGray/MomentArithmetic.jl
 ```
 
 
-## Features
-
-- 9 univariate transformations: scalar multiplication, scalar translation, exp, log, ln, 1/x, x^2, sqrt and |x|
-- 7 binary operations: +, -, \*, /, ^, min, max
-- Independence and no dependence assumptions (Fréchet)
-- Moments consitancy checking
-- Bounding [p-box](https://en.wikipedia.org/wiki/Probability_box) from Moments
-
 ## Usage
 
-TODO
+### Consistancy Checking
+```Julia
+# Theoretical moment bounds from range
+julia> A = Moments(mean = missing, var = missing, range = interval(2.3, 7))
+moment: 	  ~ ( mean = [2.3,7.0], var = [0.0,5.5225] , range = [2.3,7.0] )
+
+# Tighter variances when mean is given
+julia> B = Moments(mean = 3, var = missing, range = interval(2.3, 7))
+moment: 	  ~ ( mean  = 3, var = [0.0,2.8000000000000007] , range = [2.3,7.0] )
+
+# Provided mean tightened with theoretical bound
+julia> C = Moments(mean = interval(5, 10), var = missing, range = interval(2.3, 7))
+moment: 	  ~ ( mean = [5.0,7.0], var = [0.0,5.4] , range = [2.3,7.0] )
+
+# Gives error when provided information is outside theoretical bounds
+julia> D = Moments(mean = interval(10, 30), var = missing, range = interval(2.3, 7))
+ERROR: ArgumentError: Provided information not valid. Mean ∩ Range = ∅.
+       [10, 30] ∩ [2.29999, 7] = ∅
+
+# Variance outside theoretical bounds
+julia> E = Moments(mean = 3, var = interval(15,18), range = interval(2.3, 7))
+ERROR: ArgumentError: Provided information not valid. Variance ∩ VarBounds = ∅.
+       [15, 18] ∩ [0, 2.80001] = ∅
+```
+
+### Arithmetic bivariate
+```Julia
+# Default is unknown interaction (Fréchet)
+julia> A + B
+moment: 	  ~ ( mean = [5.3,10.0], var = [0.0,16.187104249420315] , range = [4.6,14.0] )
+
+julia> A - B
+moment: 	  ~ ( mean = [-0.7000000000000002,4.0], var = [0.0,16.187104249420315] , range = [-4.7,4.7] )
+
+julia> A * B
+moment: 	  ~ ( mean = [5.289999999999999,24.93230212471016], var = [0.0,472.7449931126878] , range = [5.289999999999999,49.0] )
+
+julia> A / B
+moment: 	  ~ ( mean = [0.3285714285714285,3.043478260869566], var = [0.0,1.8426797770147763] , range = [0.3285714285714285,3.043478260869566] )
+
+julia> min(A,B)
+moment: 	  ~ ( mean = [2.3,3.0], var = [0.0,2.8000000000000007] , range = [2.3,7.0] )
+
+julia> max(A,B)
+moment: 	  ~ ( mean = [3.0,7.0], var = [0.0,5.5225] , range = [2.3,7.0] )
+
+# Independence also possible
+
+julia> sumIndep(A,B)
+moment: 	  ~ ( mean = [5.3,10.0], var = [0.0,8.322500000000002] , range = [4.6,14.0] )
+
+julia> subIndep(A,B)
+moment: 	  ~ ( mean = [-0.7000000000000002,4.0], var = [0.0,8.322500000000002] , range = [-4.7,4.7] )
+
+julia> multIndep(A,B)
+moment: 	  ~ ( mean = [6.8999999999999995,21.0], var = [0.0,202.36550000000008] , range = [5.289999999999999,49.0] )
+
+julia> divIndep(A,B)
+moment: 	  ~ ( mean = [0.5590277777777776,3.009661835748793], var = [0.003501216042008588,1.8426797770147763] , range = [0.3285714285714285,3.043478260869566] )
+
+julia> minIndep(A,B)
+moment: 	  ~ ( mean = [2.3,3.0], var = [0.0,2.8000000000000007] , range = [2.3,7.0] )
+
+julia> maxIndep(A,B)
+moment: 	  ~ ( mean = [3.0,7.0], var = [0.0,5.5225] , range = [2.3,7.0] )
+
+
+```
