@@ -14,7 +14,7 @@ import Base./
 import Base.^
 
 import Base.issubset, Base.intersect
-import Base: exp, sqrt, ^, log, +, -, *, /, abs
+import Base: exp, sqrt, ^, log, +, -, *, /, abs, min, max
 
 global Nsub = [20]        # Number of sub-intervals
 

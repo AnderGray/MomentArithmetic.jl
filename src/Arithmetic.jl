@@ -301,10 +301,12 @@ function maxIndep(x :: AbstractMoment, y :: AbstractMoment)
     return maxFrechet(x, y)
 end
 
-+(x :: AbstractMoment, y :: AbstractMoment) = sumIndep(x,y);
--(x :: AbstractMoment, y :: AbstractMoment) = subIndep(x,y);
-*(x :: AbstractMoment, y :: AbstractMoment) = multIndep(x,y);
-/(x :: AbstractMoment, y :: AbstractMoment) = divIndep(x,y);
++(x :: AbstractMoment, y :: AbstractMoment) = sumFrechet(x,y);
+-(x :: AbstractMoment, y :: AbstractMoment) = subFrechet(x,y);
+*(x :: AbstractMoment, y :: AbstractMoment) = multFrechet(x,y);
+/(x :: AbstractMoment, y :: AbstractMoment) = divFrechet(x,y);
+min(x :: AbstractMoment, y :: AbstractMoment) = minFrechet(x,y);
+max(x :: AbstractMoment, y :: AbstractMoment) = maxFrechet(x,y);
 
 ##
 # With Intervals (Moments with just ranges)
