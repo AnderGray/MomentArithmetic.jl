@@ -415,6 +415,45 @@ function maxFrechet(x :: AbstractMoment, y :: AbstractMoment)
 
 end
 
+###
+#   Perfect Arithmetic
+###
+
+function sumPerfect(x :: Moments, y :: Moments)
+
+    meanZ = x.mean + y.mean
+    varZ  = (sqrt(x.var) + sqrt(y.var))^2
+    rangeZ = x.range + y.range
+    return Moments(meanZ, varZ, rangeZ)
+end
+
+function subPerfect(x :: Moments, y :: Moments)
+
+    meanZ = x.mean - y.mean
+    varZ  = (sqrt(x.var) - sqrt(y.var))^2
+    rangeZ = x.range - y.range
+    return Moments(meanZ, varZ, rangeZ)
+end
+
+###
+#   Opposite Arithmetic
+###
+
+function sumOpposite(x :: Moments, y :: Moments)
+
+    meanZ = x.mean + y.mean
+    varZ  = (sqrt(x.var) - sqrt(y.var))^2
+    rangeZ = x.range + y.range
+    return Moments(meanZ, varZ, rangeZ)
+end
+
+function subOpposite(x :: Moments, y :: Moments)
+
+    meanZ = x.mean - y.mean
+    varZ  = (sqrt(x.var) + sqrt(y.var))^2
+    rangeZ = x.range - y.range
+    return Moments(meanZ, varZ, rangeZ)
+end
 
 ###
 #   known Dependence, or interval Dependence

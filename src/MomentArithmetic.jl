@@ -35,6 +35,8 @@ export
     sumFrechet, subFrechet, multFrechet, divFrechet, minFrechet,
     maxFrechet,
 
+    sumPerfect, subPerfect, sumOpposite, subOpposite,
+
     # From Utils.jl
     env, left, right, split, issubset, intersect, hasIntMean, hasIntVar, hasIntMoments,
 
