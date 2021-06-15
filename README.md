@@ -7,7 +7,7 @@ Generalisation of First Order Error Propagation with:
 - Independence between variables need not be assumed (but can be)
 - Moments may be partially known (intervals)
 - Input distribution assumptions no longer necessary
-- Distributrional information can be obtained from moment and range information in non-linear models
+- Distributional information can be obtained from moment and range information in non-linear models
 
 May be viewed as a form of *distribution-free risk analysis*.
 
@@ -35,7 +35,7 @@ pkg> add https://github.com/AnderGray/MomentArithmetic.jl
 
 ## Usage
 
-### Consistancy Checking
+### Consistency Checking
 ```Julia
 # Theoretical moment bounds from range
 julia> A = Moments(mean = missing, var = missing, range = interval(2.3, 7))
@@ -149,10 +149,10 @@ julia> plot(p)       # may also do plot(A)
 
 <img src="https://imgur.com/eqsdj7w.png" data-canonical-src="https://imgur.com/eqsdj7w.png" width="1500" />
 
-
+The above p-box bounds all distribution functions with mean 3, variance 1 and range [1, 5]
 
 ## Funding
 
-The authors would like to thank the gracious support from the EPSRC iCase studentship award 15220067. We also gratefully acknowledge funding from UKRI via the EPSRC and ESRC Centre for Doctoral Training in Risk and Uncertainty Quantification and Management in Complex Systems. This research was supported by the EPSRC through grant EP/R006768/1, which is acknowledgedfor its funding and support. This work has been carried out within the framework of the EUROfusion Consortium and has received funding from the Euratom research and training programme 2014-2018 and 2019-2020 under grant agreement No 633053. The views and opinions expressed hereindo not necessarily reflect those of the European Commission 
+The authors would like to thank the gracious support from the EPSRC iCase studentship award 15220067. We also gratefully acknowledge funding from UKRI via the EPSRC and ESRC Centre for Doctoral Training in Risk and Uncertainty Quantification and Management in Complex Systems. This research was supported by the EPSRC through grant EP/R006768/1, which is acknowledgedfor its funding and support. This work has been carried out within the framework of the EUROfusion Consortium and has received funding from the Euratom research and training programme 2014-2018 and 2019-2020 under grant agreement No 633053. The views and opinions expressed herein do not necessarily reflect those of the European Commission 
 
 (PDF) Distribution-free uncertainty propagation. Available from: https://www.researchgate.net/publication/352225779_Distribution-free_uncertainty_propagation
