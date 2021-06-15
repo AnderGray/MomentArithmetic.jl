@@ -40,6 +40,8 @@ export
     # From Utils.jl
     env, left, right, split, issubset, intersect, hasIntMean, hasIntVar, hasIntMoments,
 
+    area, dist,
+
     # From IntervalArithmetic.jl
     interval, Interval,
 

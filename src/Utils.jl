@@ -53,3 +53,23 @@ right(x :: Interval) = x.hi;        right(x :: Real) = x
 hasIntMean(x :: AbstractMoment) = typeof(x.mean) <: Interval
 hasIntVar(x :: AbstractMoment) = typeof(x.var) <: Interval
 hasIntMoments(x :: AbstractMoment) = hasIntMean(x) || hasIntVar(x)
+
+function area(x :: Moments, y :: Moments)
+    z = subPerfect(x, y)
+    zAbs = abs(z)
+    return zAbs.mean
+end
+
+dist = area
+
+function areaWorst(x :: Moments, y :: Moments)
+    z = subOpposite(x, y)
+    zAbs = abs(z)
+    return zAbs.mean
+end
+
+function areaFrechet(x :: Moments, y :: Moments)
+    z = subFrechet(x, y)
+    zAbs = abs(z)
+    return zAbs.mean
+end
