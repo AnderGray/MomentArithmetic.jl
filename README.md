@@ -25,11 +25,19 @@ May be viewed as a form of *distribution-free risk analysis*.
 
 ## Installation
 
-Not yet a registered package, however may be installed through the Julia package manager:
+This is a registered Julia package:
+```Julia
+
+julia> ]
+pkg> add MomentArithmetic
+
+```
+or for the most up to date version: 
 
 ```Julia
 julia> ]
-pkg> add https://github.com/AnderGray/MomentArithmetic.jl
+pkg> add https://github.com/AnderGray/MomentArithmetic.jl#master
+
 ```
 
 
