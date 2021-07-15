@@ -13,7 +13,7 @@ May be viewed as a form of *distribution-free risk analysis*.
 
 [REC21 Paper](https://www.researchgate.net/publication/352225779_Distribution-free_uncertainty_propagation)
 
-[REC21 Presentation](http://ww2new.unime.it/REC2021/index.php?uri=presentations)
+[REC21 Presentation](http://ww2new.unime.it/REC2021/presentations/REC2021-37_Presentation.pdf)
 
 ## Features
 
