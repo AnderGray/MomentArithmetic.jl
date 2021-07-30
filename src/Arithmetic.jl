@@ -459,6 +459,45 @@ end
 #   known Dependence, or interval Dependence
 ###
 
+function sumCor(x :: Moments, y :: Moments, corr :: Interval, nSub = 10)
+
+    xVar = x.var; yVar = y.var; R = corr;
+
+    if typeof(x.var) <: Interval; xVar = mince(xVar, nSub); end
+    if typeof(y.var) <: Interval; yVar = mince(yVar, nSub); end
+    #if typeof(corr) <: Interval; R = mince(R, nSub); end
+
+    varZ = [xs + ys + 2 * sqrt(xs) * sqrt(ys) * corrs for xs in xVar, ys in yVar, corrs in R]
+
+    meanZ = x.mean + y.mean
+    rangeZ = x.range + y.range
+
+    varZ = hull(varZ[:]);
+
+    return Moments(meanZ, varZ, rangeZ)
+end
+
+sumCor(x :: Moments, y :: Moments, corr :: Real, nSub = 10) = sumCor(x,y, interval(corr), nSub)
+
+function subCor(x :: Moments, y :: Moments, corr :: Interval, nSub = 10)
+
+    xVar = x.var; yVar = y.var; R = corr;
+
+    if typeof(x.var) <: Interval; xVar = mince(xVar, nSub); end
+    if typeof(y.var) <: Interval; yVar = mince(yVar, nSub); end
+    #if typeof(corr) <: Interval; R = mince(R, nSub); end
+
+    varZ = [xs + ys - 2 * sqrt(xs) * sqrt(ys) * corrs for xs in xVar, ys in yVar, corrs in R]
+
+    meanZ = x.mean - y.mean
+    rangeZ = x.range - y.range
+
+    varZ = hull(varZ[:]);
+
+    return Moments(meanZ, varZ, rangeZ)
+end
+
+subCor(x :: Moments, y :: Moments, corr :: Real, nSub = 10) = subCor(x,y, interval(corr), nSub)
 
 ###
 #   Bertsimas mean for min and max. Do not require sub-intervalisation due to env and intersect

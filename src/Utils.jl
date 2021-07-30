@@ -54,13 +54,13 @@ hasIntMean(x :: AbstractMoment) = typeof(x.mean) <: Interval
 hasIntVar(x :: AbstractMoment) = typeof(x.var) <: Interval
 hasIntMoments(x :: AbstractMoment) = hasIntMean(x) || hasIntVar(x)
 
-function area(x :: Moments, y :: Moments)
+function dist(x :: Moments, y :: Moments)
     z = subPerfect(x, y)
     zAbs = abs(z)
     return zAbs.mean
 end
 
-dist = area
+area = dist
 
 function areaWorst(x :: Moments, y :: Moments)
     z = subOpposite(x, y)
@@ -73,3 +73,11 @@ function areaFrechet(x :: Moments, y :: Moments)
     zAbs = abs(z)
     return zAbs.mean
 end
+
+
+function cov(x :: Moments, y :: Moments , cor :: Interval = interval(-1,1))
+    if !(cor ⊆ interval(-1,1)); throw(ArgumentError("Correlation must be in [-1, 1]"));end
+    return sqrt(x.var) * sqrt(y.var) * cor
+end
+
+cov(x, y, cor :: Real) = cov(x, y, interval(cor))
