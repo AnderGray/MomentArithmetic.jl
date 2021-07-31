@@ -13,7 +13,7 @@ May be viewed as a form of *distribution-free risk analysis*.
 
 [REC21 Paper](https://www.researchgate.net/publication/352225779_Distribution-free_uncertainty_propagation)
 
-[REC21 Presentation](http://ww2new.unime.it/REC2021/index.php?uri=presentations)
+[REC21 Presentation](http://ww2new.unime.it/REC2021/presentations/REC2021-37_Presentation.pdf)
 
 ## Features
 
@@ -25,11 +25,19 @@ May be viewed as a form of *distribution-free risk analysis*.
 
 ## Installation
 
-Not yet a registered package, however may be installed through the Julia package manager:
+This is a registered Julia package:
+```Julia
+
+julia> ]
+pkg> add MomentArithmetic
+
+```
+or for the most up to date version: 
 
 ```Julia
 julia> ]
-pkg> add https://github.com/AnderGray/MomentArithmetic.jl
+pkg> add https://github.com/AnderGray/MomentArithmetic.jl#master
+
 ```
 
 
