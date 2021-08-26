@@ -37,10 +37,14 @@ export
 
     sumPerfect, subPerfect, sumOpposite, subOpposite,
 
+    sumCor, subCor,
+
     # From Utils.jl
     env, left, right, split, issubset, intersect, hasIntMean, hasIntVar, hasIntMoments,
 
     area, dist,
+
+    cov,
 
     # From IntervalArithmetic.jl
     interval, Interval,

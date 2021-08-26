@@ -382,6 +382,59 @@ function multFrechet(x :: AbstractMoment, y :: AbstractMoment; Nsub = Nsub[1])
     return Moments(zMean, zVar, zRange);
 end
 
+function multFrechet2(x :: AbstractMoment, y :: AbstractMoment)
+
+    EX = x.mean; EY = y.mean;
+    VX = x.var; VY = y.var;
+
+    zMeanLb = EX * EY - sqrt(VX * VY);
+    zMeanUb = EX * EY + sqrt(VX * VY);
+    zMean = env(zMeanLb, zMeanUb);
+
+    x2 = x^2; y2 = y^2
+
+    E11 = cov(x2,y2) + (x2.mean * y2.mean);
+    E22 = (cov(x,y) + (x.mean * y.mean)) ^2
+
+    zVar = E11 - E22
+
+    zRange = x.range * y.range;
+
+    Moments(zMean, zVar, zRange)
+
+end
+
+function multFrechet3(x :: AbstractMoment, y :: AbstractMoment)
+
+    EX = x.mean; EY = y.mean;
+    VX = x.var; VY = y.var;
+
+    zMeanLb = EX * EY - sqrt(VX * VY);
+    zMeanUb = EX * EY + sqrt(VX * VY);
+    zMean = env(zMeanLb, zMeanUb);
+
+    x2 = x^2; y2 = y^2
+
+    # mean again:
+    EX2 = x2.mean; EY2 = y2.mean;
+    VX2 = x2.var; VY2 = y2.var;
+
+    zMeanLb2 = EX2 * EY2 - sqrt(VX2 * VY2);
+    zMeanUb2 = EX2 * EY2 + sqrt(VX2 * VY2);
+    zMean2 = env(zMeanLb2, zMeanUb2);
+
+
+    E11 = zMean2
+    E22 = zMean^2
+
+    zVar = E11 - E22
+
+    zRange = x.range * y.range;
+
+    return Moments(zMean, zVar, zRange)
+
+end
+
 divFrechet(x :: AbstractMoment, y :: AbstractMoment) = multFrechet(x, 1/y)  #Not best possible
 
 
