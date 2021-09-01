@@ -136,12 +136,12 @@ end
 
 function ^(x :: AbstractMoment, a :: Real)
 
-    if isodd(a) && 0 ∈ x.range;
-        return multFrechet(x^(a -1 ), x);
+    if isodd(a) && 0 > x.range.lo && 0 < x.range.hi;
+        return multFrechet(x^(a-1), x);
     end
 
     f(x) = x^a
-    invF(x) = x^(-a)
+    invF(x) = x^(1/a)
 
     MEAN = rowe(x, f)
     VAR = rowevar(x, f, invF)
