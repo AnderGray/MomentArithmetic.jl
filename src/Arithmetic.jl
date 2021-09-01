@@ -136,10 +136,12 @@ end
 
 function ^(x :: AbstractMoment, a :: Real)
 
-    if !(a == 2); throw(ArgumentError("Only rowe squared works so far")); end
+    if isodd(a) && 0 ∈ x.range;
+        return multFrechet(x^(a -1 ), x);
+    end
 
-    f(x) = x^2
-    invF(x) = sqrt(x)
+    f(x) = x^a
+    invF(x) = x^(-a)
 
     MEAN = rowe(x, f)
     VAR = rowevar(x, f, invF)
@@ -186,8 +188,8 @@ function log(x = missing :: AbstractMoment, base = ℯ :: Real)
 end
 
 function abs(x :: AbstractMoment)
-    if x.range > 0;
-        EY = x.mean;
+    if x.range >= 0;
+        return x
     elseif x.range < 0;
         EY = -x.mean;
     else
