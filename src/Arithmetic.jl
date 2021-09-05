@@ -362,29 +362,11 @@ function subFrechet(x :: AbstractMoment, y :: AbstractMoment)
     return Moments(zMean, zVar, zRange);
 end
 
-# Requires alot of subintervaling for Gvar to have an effect
-function multFrechet(x :: AbstractMoment, y :: AbstractMoment; Nsub = Nsub[1])
 
-    EX = x.mean; EY = y.mean;
-    VX = x.var; VY = y.var;
-
-    zMeanLb = EX * EY - sqrt(VX * VY);
-    zMeanUb = EX * EY + sqrt(VX * VY);
-    zMean = env(zMeanLb, zMeanUb);
-
-    if typeof(EX) <: Interval && !isvacuous(EX);  EX = split(EX, Nsub); end    # Sub-intervalise
-    if typeof(EY) <: Interval && !isvacuous(EY);  EY = split(EY, Nsub); end
-
-    zVar = [Gvar(Moments(ex ,VX ,x.range), Moments(ey, VY, y.range)) for ex in EX, ey in EY]
-
-    zVar = hull(zVar[:])
-
-    zRange = x.range * y.range;
-
-    return Moments(zMean, zVar, zRange);
-end
-
-function multFrechet2(x :: AbstractMoment, y :: AbstractMoment)
+###
+#   Frechet multiplication. Not sub-intervalising required.
+###
+function multFrechet(x :: AbstractMoment, y :: AbstractMoment)
 
     EX = x.mean; EY = y.mean;
     VX = x.var; VY = y.var;
@@ -406,7 +388,9 @@ function multFrechet2(x :: AbstractMoment, y :: AbstractMoment)
 
 end
 
-function multFrechet3(x :: AbstractMoment, y :: AbstractMoment)
+
+# Requires alot of subintervaling for Gvar to have an effect
+function multFrechetOld(x :: AbstractMoment, y :: AbstractMoment; Nsub = Nsub[1])
 
     EX = x.mean; EY = y.mean;
     VX = x.var; VY = y.var;
@@ -415,27 +399,18 @@ function multFrechet3(x :: AbstractMoment, y :: AbstractMoment)
     zMeanUb = EX * EY + sqrt(VX * VY);
     zMean = env(zMeanLb, zMeanUb);
 
-    x2 = x^2; y2 = y^2
+    if typeof(EX) <: Interval && !isvacuous(EX);  EX = split(EX, Nsub); end    # Sub-intervalise
+    if typeof(EY) <: Interval && !isvacuous(EY);  EY = split(EY, Nsub); end
 
-    # mean again:
-    EX2 = x2.mean; EY2 = y2.mean;
-    VX2 = x2.var; VY2 = y2.var;
+    zVar = [Gvar(Moments(ex ,VX ,x.range), Moments(ey, VY, y.range)) for ex in EX, ey in EY]
 
-    zMeanLb2 = EX2 * EY2 - sqrt(VX2 * VY2);
-    zMeanUb2 = EX2 * EY2 + sqrt(VX2 * VY2);
-    zMean2 = env(zMeanLb2, zMeanUb2);
-
-
-    E11 = zMean2
-    E22 = zMean^2
-
-    zVar = E11 - E22
+    zVar = hull(zVar[:])
 
     zRange = x.range * y.range;
 
-    return Moments(zMean, zVar, zRange)
-
+    return Moments(zMean, zVar, zRange);
 end
+
 
 divFrechet(x :: AbstractMoment, y :: AbstractMoment) = multFrechet(x, 1/y)  #Not best possible
 
@@ -687,5 +662,30 @@ ys = Split(yvar, 10)
 outs  = [F(xmean, ymean, xvar, yvar) for xvar in xs, yvar in ys]
 hull(outs[:])
 
+
+function multFrechet(x :: AbstractMoment, y :: AbstractMoment; sub = false, Nsub = Nsub[1])
+
+    EX = x.mean; EY = y.mean;
+    VX = x.var; VY = y.var;
+
+    zMeanLb = EX * EY - sqrt(VX * VY);
+    zMeanUb = EX * EY + sqrt(VX * VY);
+    zMean = env(zMeanLb, zMeanUb);
+
+    if sub
+        if typeof(VX) <: Interval && !isvacuous(VX);  VX = split(VX, Nsub); end    # Sub-intervalise
+        if typeof(VY) <: Interval && !isvacuous(VY);  VY = split(VY, Nsub); end
+    end
+
+    COR = interval(-1, 1)           # cor = [-1, 1] for Frechet
+
+    zVar = [(VX + EX^2) * (VY + EY^2) + COR*VX*VY - (COR * sqrt(VX) * sqrt(VY) + EY * EX)^2 for VX in VX, VY in VY]
+    zVar = hull(zVar[:])
+
+    zRange = x.range * y.range;
+
+    Moments(zMean, zVar, zRange)
+
+end
 
 =#
