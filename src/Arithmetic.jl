@@ -109,6 +109,11 @@ end
 -(x :: AbstractMoment) = Moments(-x.mean, x.var, -x.range)
 
 function reciprocal(x :: AbstractMoment)
+
+    if 0 ∈ x.range
+        throw(ArgumentError("Tried to evaluate 1/X, with 0 ∈ X. Interval range is [-∞, ∞], moments not defined"))
+    end
+
     f(x) = 1/x
     invF(x) = 1/x
 
@@ -122,6 +127,8 @@ end
 
 reciprocal(x :: Real) = 1/x
 
+inv(x :: AbstractMoment) = reciprocal(x)
+
 function exp(x :: AbstractMoment)
 
     MEAN = rowe(x, exp)
@@ -134,7 +141,20 @@ end
 
 #^(x :: AbstractMoment) = throw(ArgumentError("rowe exponentiate must be implemented"))
 
-function ^(x :: AbstractMoment, a :: Real)
+function ^(x :: AbstractMoment, a :: Integer)
+
+    if a == 0;
+        return Moments(1, 0, interval(1));
+    end
+
+    if a == 1; return x; end
+
+    if a < 0;
+        if 0 ∈ x.range
+            throw(ArgumentError("Tried to evaluate 1/0, when 0 ∈ X when performing X^a where a < 0. Interval range is [-∞, ∞], Moments not defined"))
+        end
+        return reciprocal(x)^a;
+    end
 
     if isodd(a) && 0 > x.range.lo && 0 < x.range.hi;
         return multFrechet(x^(a-1), x);
@@ -149,6 +169,46 @@ function ^(x :: AbstractMoment, a :: Real)
 
     return Moments(MEAN, VAR, RANGE)
 end
+
+function ^(x :: AbstractMoment, a :: Float64)
+
+    if isinteger(a); return x^Integer(a); end
+
+    if x.range.lo < 0;
+        throw(ArgumentError("Cannot take the power of a negative number to a real number. Yields imaginary numbers, for which moments are currently undefined"))
+    end
+
+    f(x) = x^a
+    invF(x) = x^(1/a)
+
+    MEAN = rowe(x, f)
+    VAR = rowevar(x, f, invF)
+    RANGE = f(x.range)
+
+    return Moments(MEAN, VAR, RANGE)
+end
+
+function ^(x :: AbstractMoment, a :: Interval)
+
+    if isinteger(a); return x^Integer(a); end
+
+    if x.range.lo < 0;
+        throw(ArgumentError("Cannot take the power of a negative number to a real number. Yields imaginary numbers, for which moments are currently undefined"))
+    end
+
+    x1 = x^(a.lo)
+    x2 = x^(a.hi)
+
+    out = env(x1, x2)
+
+    unitMom = Moments(1,0,interval(1))
+
+    if 0 ∈ a; out = env(out, unitMom); end
+    if 1 ∈ x.range; out = env(out, unitMom); end
+
+    return out
+end
+
 
 function sqrt(x :: AbstractMoment)
 

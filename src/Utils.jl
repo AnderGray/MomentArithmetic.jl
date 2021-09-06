@@ -19,6 +19,11 @@ function env(x, y)
     return interval(MIN, MAX);
 end
 
+
+function env(x :: AbstractMoment, y :: AbstractMoment)
+    return Moments(env(x.mean, y.mean), env(x.var, y.var), env(x.range, y.range));
+end
+
 left(x :: AbstractMoment) = x.range.lo
 right(x :: AbstractMoment) = x.range.hi
 
