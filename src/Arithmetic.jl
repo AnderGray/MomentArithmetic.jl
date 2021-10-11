@@ -525,6 +525,8 @@ function subPerfect(x :: Moments, y :: Moments)
     return Moments(meanZ, varZ, rangeZ)
 end
 
+multPerfect(x, y) = multCor(x, y, 1)
+
 ###
 #   Opposite Arithmetic
 ###
@@ -588,6 +590,35 @@ function subCor(x :: Moments, y :: Moments, corr :: Interval, nSub = 10)
 end
 
 subCor(x :: Moments, y :: Moments, corr :: Real, nSub = 10) = subCor(x,y, interval(corr), nSub)
+
+
+function multCor(x :: Moments, y :: Moments, corr :: Interval)
+
+    EX = x.mean; EY = y.mean;
+    VX = x.var; VY = y.var;
+
+    zMean = EX * EY + corr * sqrt(VX * VY);
+
+    x2 = x^2; y2 = y^2
+
+    E11 = cov(x2,y2) + (x2.mean * y2.mean);
+    E22 = (corr * sqrt(VX * VY) + (x.mean * y.mean)) ^2
+
+    zVar = E11 - E22
+
+    zRange = x.range * y.range;
+
+    return Moments(zMean, zVar, zRange)
+end
+
+
+multCor(x :: Moments, y :: Moments, corr :: Real) = multCor(x,y, interval(corr))
+
+function divCor(x :: Moments, y :: Moments, corr :: Interval)
+    return multCor(x, 1/y, -1 * corr)
+end
+
+divCor(x :: Moments, y :: Moments, corr :: Real) = divCor(x,y, interval(corr))
 
 ###
 #   Bertsimas mean for min and max. Do not require sub-intervalisation due to env and intersect
@@ -664,13 +695,6 @@ end
 
     2*EX*EX2Y - 2*EY*EX2Y + 4*EX*EY^3 - 6*EX^2*EY^2 + 4*EX^3*EY - EXY^2 + 8*EX*EY*EXY - 4*EX^2*EXY - 4*EY^2*EXY -2*EX*EY*EX2 + EY^2*EX2 - 2*EX*EY*EY2 + EX^2*EY2 + 2*EY*EXY2 - 2*EX*EXY2 + EX2Y2
 =#
-
-function multFrechetMean(x :: AbstractMoment, y :: AbstractMoment)
-    zMeanLb = x.mean * y.mean - sqrt(x.var * y.var);
-    zMeanUb = x.mean * y.mean + sqrt(x.var * y.var);
-    return env(zMeanLb, zMeanUb);
-end
-
 
 
 ###

@@ -16,7 +16,7 @@ import Base.^
 import Base.issubset, Base.intersect
 import Base: exp, sqrt, ^, log, +, -, *, /, abs, min, max, inv
 
-global Nsub = [20]        # Number of sub-intervals
+global Nsub = [100]        # Number of sub-intervals
 
 abstract type AbstractMoment end
 
@@ -37,7 +37,7 @@ export
 
     sumPerfect, subPerfect, sumOpposite, subOpposite,
 
-    sumCor, subCor,
+    sumCor, subCor, multCor, divCor,
 
     # From Utils.jl
     env, left, right, split, issubset, intersect, hasIntMean, hasIntVar, hasIntMoments,
