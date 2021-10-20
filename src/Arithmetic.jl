@@ -70,6 +70,9 @@ function rowevarFormula(EX, VX, LX , GX, t :: Function, invT :: Function)
     MIN = ((t(Lv) - t(LX))/(Lv - LX))^2 * (VX + (Lv - EX)^2)
     MAX = ((t(Gv) - t(GX))/(Gv - GX))^2 * (VX + (Gv - EX)^2)
 
+    if isnan(MIN); MIN =0; end
+    if isnan(MAX); MAX =0; end
+
     return env(MIN, MAX)
 
 end
@@ -109,6 +112,11 @@ end
 -(x :: AbstractMoment) = Moments(-x.mean, x.var, -x.range)
 
 function reciprocal(x :: AbstractMoment)
+
+    if 0 ∈ x.range
+        throw(ArgumentError("Tried to evaluate 1/X, with 0 ∈ X. Interval range is [-∞, ∞], moments not defined"))
+    end
+
     f(x) = 1/x
     invF(x) = 1/x
 
@@ -122,11 +130,18 @@ end
 
 reciprocal(x :: Real) = 1/x
 
+inv(x :: AbstractMoment) = reciprocal(x)
+
 function exp(x :: AbstractMoment)
 
     MEAN = rowe(x, exp)
     VAR = rowevar(x, exp, log)
     RANGE = exp(x.range)
+
+    MEAN2 = rowe(2 * x, exp)
+    homespun_var = MEAN2 - MEAN^2
+
+    VAR = VAR ∩ homespun_var
 
     return Moments(MEAN, VAR, RANGE)
 
@@ -134,12 +149,56 @@ end
 
 #^(x :: AbstractMoment) = throw(ArgumentError("rowe exponentiate must be implemented"))
 
-function ^(x :: AbstractMoment, a :: Real)
+function ^(x :: AbstractMoment, a :: Integer)
 
-    if !(a == 2); throw(ArgumentError("Only rowe squared works so far")); end
+    if a == 0;
+        return Moments(1, 0, interval(1));
+    end
 
-    f(x) = x^2
-    invF(x) = sqrt(x)
+    if a == 1; return x; end
+
+    if a < 0;
+        if 0 ∈ x.range
+            throw(ArgumentError("Tried to evaluate 1/0, when 0 ∈ X when performing X^a where a < 0. Interval range is [-∞, ∞], Moments not defined"))
+        end
+        return reciprocal(x)^a;
+    end
+
+    if isodd(a) && 0 > x.range.lo && 0 < x.range.hi;
+        return multFrechet(x^(a-1), x);
+    end
+
+    f(x) = x^a
+    invF(x) = x^(1/a)
+
+    MEAN = rowe(x, f)
+    VAR = rowevar(x, f, invF)
+    RANGE = f(x.range)
+
+    if a == 2
+        var_hs = homespun_var_square(x)
+        VAR = VAR ∩ var_hs
+    end
+
+    return Moments(MEAN, VAR, RANGE)
+end
+
+function homespun_var_square( x :: Moments )
+    that = x^4
+    this = that.mean - (x.mean^2 + x.var)^2
+    return max(0,this)
+end
+
+function ^(x :: AbstractMoment, a :: Float64)
+
+    if isinteger(a); return x^Integer(a); end
+
+    if x.range.lo < 0;
+        throw(ArgumentError("Cannot take the power of a negative number to a real number. Yields imaginary numbers, for which moments are currently undefined"))
+    end
+
+    f(x) = x^a
+    invF(x) = x^(1/a)
 
     MEAN = rowe(x, f)
     VAR = rowevar(x, f, invF)
@@ -147,6 +206,28 @@ function ^(x :: AbstractMoment, a :: Real)
 
     return Moments(MEAN, VAR, RANGE)
 end
+
+function ^(x :: AbstractMoment, a :: Interval)
+
+    if isinteger(a); return x^Integer(a); end
+
+    if x.range.lo < 0;
+        throw(ArgumentError("Cannot take the power of a negative number to a real number. Yields imaginary numbers, for which moments are currently undefined"))
+    end
+
+    x1 = x^(a.lo)
+    x2 = x^(a.hi)
+
+    out = env(x1, x2)
+
+    unitMom = Moments(1,0,interval(1))
+
+    if 0 ∈ a; out = env(out, unitMom); end
+    if 1 ∈ x.range; out = env(out, unitMom); end
+
+    return out
+end
+
 
 function sqrt(x :: AbstractMoment)
 
@@ -156,6 +237,9 @@ function sqrt(x :: AbstractMoment)
     MEAN = rowe(x, f)
     VAR = rowevar(x, f, invF)
     RANGE = f(x.range)
+
+    homespun_var = x.mean - MEAN^2
+    VAR = VAR ∩ homespun_var;
 
     return Moments(MEAN, VAR, RANGE)
 end
@@ -186,8 +270,8 @@ function log(x = missing :: AbstractMoment, base = ℯ :: Real)
 end
 
 function abs(x :: AbstractMoment)
-    if x.range > 0;
-        EY = x.mean;
+    if x.range >= 0;
+        return x
     elseif x.range < 0;
         EY = -x.mean;
     else
@@ -201,7 +285,6 @@ function abs(x :: AbstractMoment)
     Yrange = abs(x.range)
 
     return Moments(EY, Yvar, Yrange)
-
 
 end
 
@@ -256,8 +339,6 @@ function multIndep(x :: AbstractMoment, y :: AbstractMoment)
     return Moments(zMean, zVar, zRange);
 
 end
-
-
 
 function divIndep(x :: AbstractMoment, y :: AbstractMoment)
     multIndep(x,1/y);
@@ -360,29 +441,11 @@ function subFrechet(x :: AbstractMoment, y :: AbstractMoment)
     return Moments(zMean, zVar, zRange);
 end
 
-# Requires alot of subintervaling for Gvar to have an effect
-function multFrechet(x :: AbstractMoment, y :: AbstractMoment; Nsub = Nsub[1])
 
-    EX = x.mean; EY = y.mean;
-    VX = x.var; VY = y.var;
-
-    zMeanLb = EX * EY - sqrt(VX * VY);
-    zMeanUb = EX * EY + sqrt(VX * VY);
-    zMean = env(zMeanLb, zMeanUb);
-
-    if typeof(EX) <: Interval && !isvacuous(EX);  EX = split(EX, Nsub); end    # Sub-intervalise
-    if typeof(EY) <: Interval && !isvacuous(EY);  EY = split(EY, Nsub); end
-
-    zVar = [Gvar(Moments(ex ,VX ,x.range), Moments(ey, VY, y.range)) for ex in EX, ey in EY]
-
-    zVar = hull(zVar[:])
-
-    zRange = x.range * y.range;
-
-    return Moments(zMean, zVar, zRange);
-end
-
-function multFrechet2(x :: AbstractMoment, y :: AbstractMoment)
+###
+#   Frechet multiplication. Not sub-intervalising required.
+###
+function multFrechet(x :: AbstractMoment, y :: AbstractMoment)
 
     EX = x.mean; EY = y.mean;
     VX = x.var; VY = y.var;
@@ -404,7 +467,9 @@ function multFrechet2(x :: AbstractMoment, y :: AbstractMoment)
 
 end
 
-function multFrechet3(x :: AbstractMoment, y :: AbstractMoment)
+
+# Requires alot of subintervaling for Gvar to have an effect
+function multFrechetOld(x :: AbstractMoment, y :: AbstractMoment; Nsub = Nsub[1])
 
     EX = x.mean; EY = y.mean;
     VX = x.var; VY = y.var;
@@ -413,27 +478,18 @@ function multFrechet3(x :: AbstractMoment, y :: AbstractMoment)
     zMeanUb = EX * EY + sqrt(VX * VY);
     zMean = env(zMeanLb, zMeanUb);
 
-    x2 = x^2; y2 = y^2
+    if typeof(EX) <: Interval && !isvacuous(EX);  EX = split(EX, Nsub); end    # Sub-intervalise
+    if typeof(EY) <: Interval && !isvacuous(EY);  EY = split(EY, Nsub); end
 
-    # mean again:
-    EX2 = x2.mean; EY2 = y2.mean;
-    VX2 = x2.var; VY2 = y2.var;
+    zVar = [Gvar(Moments(ex ,VX ,x.range), Moments(ey, VY, y.range)) for ex in EX, ey in EY]
 
-    zMeanLb2 = EX2 * EY2 - sqrt(VX2 * VY2);
-    zMeanUb2 = EX2 * EY2 + sqrt(VX2 * VY2);
-    zMean2 = env(zMeanLb2, zMeanUb2);
-
-
-    E11 = zMean2
-    E22 = zMean^2
-
-    zVar = E11 - E22
+    zVar = hull(zVar[:])
 
     zRange = x.range * y.range;
 
-    return Moments(zMean, zVar, zRange)
-
+    return Moments(zMean, zVar, zRange);
 end
+
 
 divFrechet(x :: AbstractMoment, y :: AbstractMoment) = multFrechet(x, 1/y)  #Not best possible
 
@@ -487,6 +543,8 @@ function subPerfect(x :: Moments, y :: Moments)
     rangeZ = x.range - y.range
     return Moments(meanZ, varZ, rangeZ)
 end
+
+multPerfect(x, y) = multCor(x, y, 1)
 
 ###
 #   Opposite Arithmetic
@@ -551,6 +609,90 @@ function subCor(x :: Moments, y :: Moments, corr :: Interval, nSub = 10)
 end
 
 subCor(x :: Moments, y :: Moments, corr :: Real, nSub = 10) = subCor(x,y, interval(corr), nSub)
+
+
+function multCor(x :: Moments, y :: Moments, corr :: Interval)
+
+    EX = x.mean; EY = y.mean;
+    VX = x.var; VY = y.var;
+
+    zMean = EX * EY + corr * sqrt(VX * VY);
+
+    x2 = x^2; y2 = y^2
+
+    E11 = cov(x2,y2) + (x2.mean * y2.mean);
+    E22 = (corr * sqrt(VX * VY) + (x.mean * y.mean)) ^2
+
+    zVar = E11 - E22
+
+    zRange = x.range * y.range;
+
+    return Moments(zMean, zVar, zRange)
+end
+
+multCor(x :: Moments, y :: Moments, corr :: Real) = multCor(x,y, interval(corr))
+
+
+function divCor(x :: Moments, y :: Moments, corr :: Interval)
+    return multCor(x, 1/y, -1 * corr)
+end
+
+divCor(x :: Moments, y :: Moments, corr :: Real) = divCor(x,y, interval(corr))
+
+###
+#   Using Covariances
+###
+
+
+function sumCov(x :: Moments, y :: Moments, cov :: Interval)
+
+    xVar = x.var; yVar = y.var;
+
+    varZ = xVar + yVar + 2 * cov;
+
+    meanZ = x.mean + y.mean
+    rangeZ = x.range + y.range
+
+    return Moments(meanZ, varZ, rangeZ)
+end
+
+sumCov(x :: Moments, y :: Moments, cov :: Real) = sumCov(x,y, interval(cov))
+
+function subCov(x :: Moments, y :: Moments, cov :: Interval)
+
+    xVar = x.var; yVar = y.var;
+
+    meanZ = x.mean - y.mean
+
+    varZ = xVar + yVar - 2 * cov;
+
+    rangeZ = x.range - y.range
+
+    return Moments(meanZ, varZ, rangeZ)
+end
+
+subCov(x :: Moments, y :: Moments, cov :: Real) = subCov(x,y, interval(cov))
+
+
+function multCov(x :: Moments, y :: Moments, Cov :: Interval)
+
+    EX = x.mean; EY = y.mean;
+
+    zMean = EX * EY + Cov;
+
+    x2 = x^2; y2 = y^2
+
+    E11 = cov(x2,y2) + (x2.mean * y2.mean);
+    E22 = (Cov + (x.mean * y.mean))^2
+
+    zVar = E11 - E22
+
+    zRange = x.range * y.range;
+
+    return Moments(zMean, zVar, zRange)
+end
+
+multCov(x :: Moments, y :: Moments, cov :: Real) = multCov(x,y, interval(cov))
 
 ###
 #   Bertsimas mean for min and max. Do not require sub-intervalisation due to env and intersect
@@ -628,13 +770,6 @@ end
     2*EX*EX2Y - 2*EY*EX2Y + 4*EX*EY^3 - 6*EX^2*EY^2 + 4*EX^3*EY - EXY^2 + 8*EX*EY*EXY - 4*EX^2*EXY - 4*EY^2*EXY -2*EX*EY*EX2 + EY^2*EX2 - 2*EX*EY*EY2 + EX^2*EY2 + 2*EY*EXY2 - 2*EX*EXY2 + EX2Y2
 =#
 
-function multFrechetMean(x :: AbstractMoment, y :: AbstractMoment)
-    zMeanLb = x.mean * y.mean - sqrt(x.var * y.var);
-    zMeanUb = x.mean * y.mean + sqrt(x.var * y.var);
-    return env(zMeanLb, zMeanUb);
-end
-
-
 
 ###
 #   Woodpile
@@ -685,5 +820,30 @@ ys = Split(yvar, 10)
 outs  = [F(xmean, ymean, xvar, yvar) for xvar in xs, yvar in ys]
 hull(outs[:])
 
+
+function multFrechet(x :: AbstractMoment, y :: AbstractMoment; sub = false, Nsub = Nsub[1])
+
+    EX = x.mean; EY = y.mean;
+    VX = x.var; VY = y.var;
+
+    zMeanLb = EX * EY - sqrt(VX * VY);
+    zMeanUb = EX * EY + sqrt(VX * VY);
+    zMean = env(zMeanLb, zMeanUb);
+
+    if sub
+        if typeof(VX) <: Interval && !isvacuous(VX);  VX = split(VX, Nsub); end    # Sub-intervalise
+        if typeof(VY) <: Interval && !isvacuous(VY);  VY = split(VY, Nsub); end
+    end
+
+    COR = interval(-1, 1)           # cor = [-1, 1] for Frechet
+
+    zVar = [(VX + EX^2) * (VY + EY^2) + COR*VX*VY - (COR * sqrt(VX) * sqrt(VY) + EY * EX)^2 for VX in VX, VY in VY]
+    zVar = hull(zVar[:])
+
+    zRange = x.range * y.range;
+
+    Moments(zMean, zVar, zRange)
+
+end
 
 =#
