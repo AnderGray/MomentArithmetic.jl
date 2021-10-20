@@ -70,6 +70,9 @@ function rowevarFormula(EX, VX, LX , GX, t :: Function, invT :: Function)
     MIN = ((t(Lv) - t(LX))/(Lv - LX))^2 * (VX + (Lv - EX)^2)
     MAX = ((t(Gv) - t(GX))/(Gv - GX))^2 * (VX + (Gv - EX)^2)
 
+    if isnan(MIN); MIN =0; end
+    if isnan(MAX); MAX =0; end
+
     return env(MIN, MAX)
 
 end
@@ -135,6 +138,11 @@ function exp(x :: AbstractMoment)
     VAR = rowevar(x, exp, log)
     RANGE = exp(x.range)
 
+    MEAN2 = rowe(2 * x, exp)
+    homespun_var = MEAN2 - MEAN^2
+
+    VAR = VAR ∩ homespun_var
+
     return Moments(MEAN, VAR, RANGE)
 
 end
@@ -167,7 +175,18 @@ function ^(x :: AbstractMoment, a :: Integer)
     VAR = rowevar(x, f, invF)
     RANGE = f(x.range)
 
+    if a == 2
+        var_hs = homespun_var_square(x)
+        VAR = VAR ∩ var_hs
+    end
+
     return Moments(MEAN, VAR, RANGE)
+end
+
+function homespun_var_square( x :: Moments )
+    that = x^4
+    this = that.mean - (x.mean^2 + x.var)^2
+    return max(0,this)
 end
 
 function ^(x :: AbstractMoment, a :: Float64)
@@ -219,6 +238,9 @@ function sqrt(x :: AbstractMoment)
     VAR = rowevar(x, f, invF)
     RANGE = f(x.range)
 
+    homespun_var = x.mean - MEAN^2
+    VAR = VAR ∩ homespun_var;
+
     return Moments(MEAN, VAR, RANGE)
 end
 
@@ -263,7 +285,6 @@ function abs(x :: AbstractMoment)
     Yrange = abs(x.range)
 
     return Moments(EY, Yvar, Yrange)
-
 
 end
 
@@ -318,8 +339,6 @@ function multIndep(x :: AbstractMoment, y :: AbstractMoment)
     return Moments(zMean, zVar, zRange);
 
 end
-
-
 
 function divIndep(x :: AbstractMoment, y :: AbstractMoment)
     multIndep(x,1/y);
@@ -611,14 +630,69 @@ function multCor(x :: Moments, y :: Moments, corr :: Interval)
     return Moments(zMean, zVar, zRange)
 end
 
-
 multCor(x :: Moments, y :: Moments, corr :: Real) = multCor(x,y, interval(corr))
+
 
 function divCor(x :: Moments, y :: Moments, corr :: Interval)
     return multCor(x, 1/y, -1 * corr)
 end
 
 divCor(x :: Moments, y :: Moments, corr :: Real) = divCor(x,y, interval(corr))
+
+###
+#   Using Covariances
+###
+
+
+function sumCov(x :: Moments, y :: Moments, cov :: Interval)
+
+    xVar = x.var; yVar = y.var;
+
+    varZ = xVar + yVar + 2 * cov;
+
+    meanZ = x.mean + y.mean
+    rangeZ = x.range + y.range
+
+    return Moments(meanZ, varZ, rangeZ)
+end
+
+sumCov(x :: Moments, y :: Moments, cov :: Real) = sumCov(x,y, interval(cov))
+
+function subCov(x :: Moments, y :: Moments, cov :: Interval)
+
+    xVar = x.var; yVar = y.var;
+
+    meanZ = x.mean - y.mean
+
+    varZ = xVar + yVar - 2 * cov;
+
+    rangeZ = x.range - y.range
+
+    return Moments(meanZ, varZ, rangeZ)
+end
+
+subCov(x :: Moments, y :: Moments, cov :: Real) = subCov(x,y, interval(cov))
+
+
+function multCov(x :: Moments, y :: Moments, Cov :: Interval)
+
+    EX = x.mean; EY = y.mean;
+
+    zMean = EX * EY + Cov;
+
+    x2 = x^2; y2 = y^2
+
+    E11 = cov(x2,y2) + (x2.mean * y2.mean);
+    E22 = (Cov + (x.mean * y.mean))^2
+
+    zVar = E11 - E22
+
+    zRange = x.range * y.range;
+
+    return Moments(zMean, zVar, zRange)
+end
+
+multCov(x :: Moments, y :: Moments, cov :: Real) = multCov(x,y, interval(cov))
 
 ###
 #   Bertsimas mean for min and max. Do not require sub-intervalisation due to env and intersect
