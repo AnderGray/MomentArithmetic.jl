@@ -163,4 +163,4 @@ The above p-box bounds all distribution functions with mean 3, variance 1 and ra
 
 The authors would like to thank the gracious support from the EPSRC iCase studentship award 15220067. We also gratefully acknowledge funding from UKRI via the EPSRC and ESRC Centre for Doctoral Training in Risk and Uncertainty Quantification and Management in Complex Systems. This research was supported by the EPSRC through grant EP/R006768/1, which is acknowledgedfor its funding and support. This work has been carried out within the framework of the EUROfusion Consortium and has received funding from the Euratom research and training programme 2014-2018 and 2019-2020 under grant agreement No 633053. The views and opinions expressed herein do not necessarily reflect those of the European Commission 
 
-(PDF) Distribution-free uncertainty propagation. Available from: https://www.researchgate.net/publication/352225779_Distribution-free_uncertainty_propagation
+(PDF) Distribution-free risk analysis. Available open access from: https://doi.org/10.1016/j.ijar.2022.04.001
