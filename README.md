@@ -19,7 +19,7 @@ May be viewed as a form of *distribution-free risk analysis*.
 
 A list of corrections and clarifications for the paper is available here:
 
-- [Errata (PDF)](errata/distribution_free_risk_analysis_errata.pdf)
+- [Errata (PDF)](https://github.com/AnderGray/MomentArithmetic.jl/blob/master/errata/Errata_to_distribution_free_risks.pdf)
 
 ## Features
 
