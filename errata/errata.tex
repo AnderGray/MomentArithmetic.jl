@@ -1,0 +1,134 @@
+\documentclass{article}
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+\usepackage[english]{babel}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{amsfonts}       % 
+
+\title{Errata for \\ \textit{Distribution-free risk analysis}}
+% \author{Ander Gray, Scott Ferson}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent We wish to correct several errors that appeared in our paper ``Distribution-free risk analysis"~\cite{GRAY2022133}. These include typographical errors in several expressions and minor inconsistencies in the discussion of cumulative versus exceedance probabilities. The corrected formulas and clarifications are provided below. These corrections do not affect the main results, numerical examples, or conclusions of the paper. We thank Bernhard Reer, Marco de Angelis, and Peter Hristov for bringing these issues to our attention and for helpful discussions.
+\end{abstract}
+
+\section{Correction - expression (2)}
+\subsection*{Error:}
+In the published paper, expression (2) omitted a squaring operation in the numerators of both terms.
+
+\subsection*{Correction:}
+The correct expression is:
+\begin{equation}
+\text{rowevar}(t)
+=
+\text{env}\left(
+\left(\frac{t\left(\underline{\nu}\right)-t\left(\underline{X}\right)}
+{\underline{\nu}-\underline{X}}\right)^2
+\left(VX+\left(\underline{\nu}-EX\right)^2\right),
+\left(\frac{t\left(\overline{\nu}\right)-t\left(\overline{X}\right)}
+{\overline{\nu}-\overline{X}}\right)^2
+\left(VX+\left(\overline{\nu}-EX\right)^2\right)
+\right)
+\end{equation}
+That is, the terms
+\[
+t\left(\underline{\nu}\right)-t\left(\underline{X}\right)
+\quad\text{and}\quad
+t\left(\overline{\nu}\right)-t\left(\overline{X}\right)
+\]
+should each be squared in the numerators. This appears to be a transcription error from Rowe's original expression.
+
+\section{Correction - expression (5)}
+\subsection*{Error:}
+In the published paper, equation (5) contained a sign error in the argument of the squared term.
+\subsection*{Correction:}
+The correct expression should read as:
+\begin{equation*}
+Q = 1/(1+ (\overline{X} - EX)^2/VX)
+\end{equation*}
+Because the squared term is symmetric, this correction does not affect the numerical results or conclusions, but it improves consistency with the conventions used elsewhere in the paper and in the accompanying software.
+
+\section{Correction - expression (36)}
+\subsection*{Error:}
+In the published version, the numeral ``1" in the second line of expression (36) should be ``0".
+
+\subsection*{Correction:}
+The correct expression is:
+\begin{equation*}
+  \mathbb{P}(x \leq X)  \geq \begin{cases} 1 / (1 + VX/(x - EX)^2),& \text{if } x<EX \\
+  0,& \text{if } EX\leq x\;. \end{cases}
+\end{equation*}
+This represents a lower bound on the probability that $X$ is as large or larger than $x$, i.e. a lower bound on the complementary cumulative distributions function (CCDF). We note that the CDF $F_X(x)$ and CCDF $S_{X}(x)$ bounds have the following relationship $\underline{S}_X(x) = 1 - \overline{F}_X(x)$.
+
+\section{Correction - expressions (37)-(40)}
+\subsection*{Error:}
+The arguments of the probability expressions $P(x \leq X)$ should instead read $P(X \leq x)$, corresponding to the CDF rather than the CCDF.
+
+\subsection*{Correction:}
+The correct expressions are:
+
+\noindent Expression 37 (Cantelli upper CDF)
+
+\begin{equation}
+  \mathbb{P}(X \leq x)  \leq \begin{cases} 0,& \text{if } x \leq0 \\
+    1 / (1 + (x - EX)^2 / VX),& \text{if } 0 \leq x\leq EX \\
+                                    1,& \text{if } EX < x , \end{cases}
+\end{equation}
+\noindent and expression 38 (Cantelli lower CDF)
+
+\begin{equation}
+  \mathbb{P}(X \leq x)  \geq \begin{cases} 0,& \text{if } x \leq EX \\
+    1 - EX/x,& \text{if } EX \leq x\leq EX+VX/EX \\
+    1 / (1 + VX / (x - EX)^2 ),& \text{if } EX + VX/EX < x  ,\end{cases}
+\end{equation}
+\noindent and expression 39 (min-max-mean-variance lower CDF)
+\begin{equation}
+  \mathbb{P}(X \leq x)  \leq \begin{cases} 0,& \text{if } x \leq \underline{X} \\
+  1/(1 + (EX - x)^2/VX),& \text{if } \underline{X} \leq x\leq EX+VX/(EX-\overline{X}) \\
+  
+  1 - (\mu^2 -\mu y + \sigma^2)/(1-y) ,& \text{if } EX+VX/(EX-\overline{X}) < x < EX+VX/(EX-\underline{X})\\
+  
+    1,& \text{if } EX+VX/(EX-\underline{X}) \leq x,  \end{cases}
+\end{equation}
+\noindent and expression 40 (min-max-mean-variance upper CDF)
+\begin{equation}
+  \mathbb{P}(X \leq x)  \geq \begin{cases} 0,& \text{if } x \leq  EX+VX/(EX-\overline{X}) \\
+  
+  1 - (\mu (1+y) - \sigma^2 - \mu^2)/y ,& \text{if }  EX+VX/(EX-\overline{X}) < x <  EX+VX/(EX-\underline{X}) \\
+  
+   1/(1 + VX/(x - EX)^2) ,& \text{if } EX+VX/(EX-\underline{X}) \leq x < \overline{X}\\
+  
+    1,& \text{if } \overline{X} \leq x.  \end{cases}
+\end{equation}
+
+\section{Clarification - Section 6.1 and text before Equation (35)}
+The text before expression (35) refers to the ``exceedance" or the complementary cumulative distribution function (CCDF), i.e., $\text{CCDF}(x) = 1 - \text{CDF}(x)$.
+We note that the phrasing “will exceed a value as large as $x$” may be ambiguous; the intended meaning is ``$X \geq x$.
+
+\section{Clarification - Continuity at Boundaries}
+In several expressions (e.g., (39)), the piecewise definitions overlap slightly at boundary points. These should be interpreted as right- or left-continuous functions consistent with their probabilistic domains. This does not affect numerical results but should be noted for mathematical precision.
+
+\section{Implications}
+The corrections above do not alter any of the main results, figures, or conclusions of the paper. All revised code implementing these corrected formulas has been posted in the accompanying GitHub repository: \href{https://github.com/AnderGray/MomentArithmetic.jl}{https://github.com/AnderGray/MomentArithmetic.jl}.
+
+Future users of the methods should refer to this erratum and the corrected code when reproducing or extending the results.
+
+\section{Acknowledgements}
+We are grateful to Bernhard Reer, Marco de Angelis, and Peter Hristov, for identifying these issues and for helpful discussions.
+
+\bibliographystyle{alpha}
+\bibliography{sample}
+
+\end{document}
