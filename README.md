@@ -15,6 +15,12 @@ May be viewed as a form of *distribution-free risk analysis*.
 
 [REC21 Presentation](http://ww2new.unime.it/REC2021/presentations/REC2021-37_Presentation.pdf)
 
+## Errata
+
+A list of corrections and clarifications for the paper is available here:
+
+- [Errata (PDF)](errata/distribution_free_risk_analysis_errata.pdf)
+
 ## Features
 
 - 9 univariate transformations: scalar multiplication, scalar translation, exp, log, ln, 1/x, x^2, sqrt and |x|
